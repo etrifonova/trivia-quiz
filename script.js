@@ -23,6 +23,7 @@ const scoreElement = document.getElementById("score");
 const progressFill = document.getElementById("progressFill");
 const currentCategoryName = document.getElementById("currentCategoryName");
 const categoryIcon = document.getElementById("categoryIcon");
+const homeButton = document.getElementById("homeButton");
 const submitButton = document.getElementById("submitButton");
 const prevButton = document.getElementById("prevButton");
 const nextButton = document.getElementById("nextButton");
@@ -243,7 +244,23 @@ function restartQuiz() {
   answerInput.disabled = false;
 }
 
+// Restart quiz
+function homePage() {
+  // Reset answered flags
+  questionsData[currentCategory].forEach((q) => (q.answered = false));
+
+  resultScreen.classList.add("hidden");
+  categoryScreen.classList.remove("hidden");
+  quizScreen.classList.add("hidden");
+
+  // Reset input
+  answerInput.value = "";
+  answerInput.className = "answer-input";
+  answerInput.disabled = false;
+}
+
 // Event listeners
+homeButton.addEventListener("click", homePage);
 submitButton.addEventListener("click", submitAnswer);
 prevButton.addEventListener("click", prevQuestion);
 nextButton.addEventListener("click", nextQuestion);
