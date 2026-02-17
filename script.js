@@ -6,6 +6,8 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let totalQuestions = 0;
+let shuffledQuestions = []; // Store shuffled questions for current game
+let autoAdvanceTimer = null; // Timer for auto-advancement
 
 // DOM elements
 const categoryScreen = document.getElementById("categoryScreen");
@@ -25,11 +27,28 @@ const currentCategoryName = document.getElementById("currentCategoryName");
 const categoryIcon = document.getElementById("categoryIcon");
 const homeButton = document.getElementById("homeButton");
 const submitButton = document.getElementById("submitButton");
-const prevButton = document.getElementById("prevButton");
-const nextButton = document.getElementById("nextButton");
 const finalScore = document.getElementById("finalScore");
 const resultMessage = document.getElementById("resultMessage");
 const restartButton = document.getElementById("restartButton");
+const resultHomeButton = document.getElementById("resultHomeButton");
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Clear auto-advance timer
+function clearAutoAdvanceTimer() {
+  if (autoAdvanceTimer) {
+    clearTimeout(autoAdvanceTimer);
+    autoAdvanceTimer = null;
+  }
+}
 
 // Initialize categories
 function initCategories() {
@@ -55,15 +74,17 @@ function startQuiz(category) {
   currentQuestionIndex = 0;
   userAnswers = [];
   score = 0;
-  totalQuestions = questionsData[category].length;
+
+  // Shuffle questions for this game
+  shuffledQuestions = shuffleArray(questionsData[category]);
+  totalQuestions = shuffledQuestions.length;
 
   // Update UI
   categoryScreen.classList.add("hidden");
   quizScreen.classList.remove("hidden");
 
   currentCategoryName.textContent = category;
-  categoryIcon.className =
-    categoryIcon.className.split(" ")[0] + " " + categoryIcons[category];
+  categoryIcon.className = categoryIcon.className.split(" ")[0] + " " + categoryIcons[category];
   totalQuestionsElement.textContent = totalQuestions;
   totalQuestionsElement2.textContent = totalQuestions;
 
@@ -72,12 +93,15 @@ function startQuiz(category) {
 
 // Load current question
 function loadQuestion() {
-  const question = questionsData[currentCategory][currentQuestionIndex];
+  // Clear any pending auto-advance timer
+  clearAutoAdvanceTimer();
+
+  const question = shuffledQuestions[currentQuestionIndex];
 
   questionText.textContent = question.question;
   answerInput.value = userAnswers[currentQuestionIndex] || "";
   answerInput.className = "answer-input";
-  answerInput.disabled = userAnswers[currentQuestionIndex] !== undefined;
+  answerInput.disabled = false;
   answerInput.focus();
 
   feedback.className = "feedback";
@@ -91,28 +115,8 @@ function loadQuestion() {
   const progressPercent = (currentQuestionIndex / totalQuestions) * 100;
   progressFill.style.width = `${progressPercent}%`;
 
-  // Update navigation buttons
-  prevButton.disabled = currentQuestionIndex === 0;
-
-  // Show/hide submit/next buttons
-  if (userAnswers[currentQuestionIndex] !== undefined) {
-    submitButton.classList.add("hidden");
-    nextButton.classList.remove("hidden");
-    showAnswerResult();
-  } else {
-    submitButton.classList.remove("hidden");
-    nextButton.classList.add("hidden");
-  }
-
-  // Hide next button on last question
-  if (
-    currentQuestionIndex === totalQuestions - 1 &&
-    userAnswers[currentQuestionIndex] !== undefined
-  ) {
-    nextButton.textContent = "Завершить";
-  } else {
-    nextButton.textContent = "Следующий";
-  }
+  // Enable submit button
+  submitButton.disabled = false;
 }
 
 // Normalize answer for comparison
@@ -122,8 +126,7 @@ function normalizeAnswer(answer) {
 
 // Check if answer is correct
 function checkAnswer(userAnswer) {
-  const correctAnswerText =
-    questionsData[currentCategory][currentQuestionIndex].answer;
+  const correctAnswerText = shuffledQuestions[currentQuestionIndex].answer;
   const normalizedUserAnswer = normalizeAnswer(userAnswer);
   const normalizedCorrectAnswer = normalizeAnswer(correctAnswerText);
 
@@ -133,19 +136,32 @@ function checkAnswer(userAnswer) {
 // Show answer result
 function showAnswerResult() {
   const userAnswer = userAnswers[currentQuestionIndex];
-  const correctAnswerText =
-    questionsData[currentCategory][currentQuestionIndex].answer;
+  const correctAnswerText = shuffledQuestions[currentQuestionIndex].answer;
   const isCorrect = checkAnswer(userAnswer);
 
   if (isCorrect) {
     answerInput.className = "answer-input correct";
     feedback.className = "feedback correct";
-    feedback.textContent = "Правильно!";
+    feedback.textContent = "Правильно! ✓";
   } else {
     answerInput.className = "answer-input wrong";
     feedback.className = "feedback wrong";
-    feedback.textContent = "Неправильно!";
+    feedback.textContent = "Неправильно! ✗";
     correctAnswer.innerHTML = `Правильный ответ: <strong>${correctAnswerText}</strong>`;
+  }
+}
+
+// Auto-advance to next question
+function autoAdvance() {
+  clearAutoAdvanceTimer();
+
+  if (currentQuestionIndex < totalQuestions - 1) {
+    // Move to next question
+    currentQuestionIndex++;
+    loadQuestion();
+  } else {
+    // Finish the quiz
+    finishQuiz();
   }
 }
 
@@ -165,12 +181,9 @@ function submitAnswer() {
 
   // Check if correct and update score
   const isCorrect = checkAnswer(userAnswer);
-  if (
-    isCorrect &&
-    !questionsData[currentCategory][currentQuestionIndex].answered
-  ) {
+  if (isCorrect && !shuffledQuestions[currentQuestionIndex].answered) {
     score++;
-    questionsData[currentCategory][currentQuestionIndex].answered = true;
+    shuffledQuestions[currentQuestionIndex].answered = true;
   }
 
   // Show result
@@ -178,35 +191,20 @@ function submitAnswer() {
 
   // Update UI
   answerInput.disabled = true;
-  submitButton.classList.add("hidden");
+  submitButton.disabled = true;
 
-  // Show next button or finish button
-  if (currentQuestionIndex === totalQuestions - 1) {
-    nextButton.textContent = "Завершить";
-  }
-  nextButton.classList.remove("hidden");
-}
+  // Update score display
+  scoreElement.textContent = score;
 
-// Go to next question
-function nextQuestion() {
-  if (currentQuestionIndex < totalQuestions - 1) {
-    currentQuestionIndex++;
-    loadQuestion();
-  } else {
-    finishQuiz();
-  }
-}
-
-// Go to previous question
-function prevQuestion() {
-  if (currentQuestionIndex > 0) {
-    currentQuestionIndex--;
-    loadQuestion();
-  }
+  // Set timer for auto-advancement (3 seconds)
+  clearAutoAdvanceTimer();
+  autoAdvanceTimer = setTimeout(() => autoAdvance(), 3000);
 }
 
 // Finish quiz and show results
 function finishQuiz() {
+  clearAutoAdvanceTimer();
+
   quizScreen.classList.add("hidden");
   resultScreen.classList.remove("hidden");
 
@@ -232,38 +230,46 @@ function finishQuiz() {
 
 // Restart quiz
 function restartQuiz() {
-  // Reset answered flags
-  questionsData[currentCategory].forEach((q) => (q.answered = false));
+  clearAutoAdvanceTimer();
+
+  // Reset answered flags in shuffled questions
+  shuffledQuestions.forEach((q) => (q.answered = false));
 
   resultScreen.classList.add("hidden");
-  categoryScreen.classList.remove("hidden");
 
-  // Reset input
-  answerInput.value = "";
-  answerInput.className = "answer-input";
-  answerInput.disabled = false;
+  // Start a new game with the same category but reshuffled questions
+  startQuiz(currentCategory);
 }
 
-// Restart quiz
+// Return to homepage
 function homePage() {
-  // Reset answered flags
-  questionsData[currentCategory].forEach((q) => (q.answered = false));
+  clearAutoAdvanceTimer();
+
+  // Reset answered flags in shuffled questions
+  if (shuffledQuestions.length > 0) {
+    shuffledQuestions.forEach((q) => (q.answered = false));
+  }
 
   resultScreen.classList.add("hidden");
-  categoryScreen.classList.remove("hidden");
   quizScreen.classList.add("hidden");
+  categoryScreen.classList.remove("hidden");
 
   // Reset input
   answerInput.value = "";
   answerInput.className = "answer-input";
   answerInput.disabled = false;
+  submitButton.disabled = false;
+
+  // Clear shuffled questions
+  shuffledQuestions = [];
 }
 
 // Event listeners
 homeButton.addEventListener("click", homePage);
+if (resultHomeButton) {
+  resultHomeButton.addEventListener("click", homePage);
+}
 submitButton.addEventListener("click", submitAnswer);
-prevButton.addEventListener("click", prevQuestion);
-nextButton.addEventListener("click", nextQuestion);
 restartButton.addEventListener("click", restartQuiz);
 
 // Enter key to submit answer
