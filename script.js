@@ -8,6 +8,7 @@ let score = 0;
 let totalQuestions = 0;
 let shuffledQuestions = []; // Store shuffled questions for current game
 let autoAdvanceTimer = null; // Timer for auto-advancement
+let hintUsed = false; // Track if hint was used for current question
 
 // DOM elements
 const categoryScreen = document.getElementById("categoryScreen");
@@ -31,6 +32,8 @@ const finalScore = document.getElementById("finalScore");
 const resultMessage = document.getElementById("resultMessage");
 const restartButton = document.getElementById("restartButton");
 const resultHomeButton = document.getElementById("resultHomeButton");
+const hintButton = document.getElementById("hintButton");
+const hintText = document.getElementById("hintText");
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray(array) {
@@ -108,6 +111,13 @@ function loadQuestion() {
   feedback.textContent = "";
   correctAnswer.textContent = "";
 
+  // Reset hint
+  hintUsed = false;
+  hintText.textContent = "";
+  hintText.classList.remove("visible");
+  hintButton.disabled = false;
+  hintButton.innerHTML = '<i class="fas fa-lightbulb"></i> Показать подсказку';
+
   currentQuestionNumber.textContent = currentQuestionIndex + 1;
   scoreElement.textContent = score;
 
@@ -117,6 +127,26 @@ function loadQuestion() {
 
   // Enable submit button
   submitButton.disabled = false;
+}
+
+// Show hint for current question
+function showHint() {
+  if (!hintUsed) {
+    const question = shuffledQuestions[currentQuestionIndex];
+    if (question.hint) {
+      hintText.textContent = question.hint;
+      hintText.classList.add("visible");
+      hintButton.disabled = true;
+      hintButton.innerHTML = '<i class="fas fa-lightbulb"></i> Подсказка использована';
+      hintUsed = true;
+    } else {
+      hintText.textContent = "Для этого вопроса нет подсказки";
+      hintText.classList.add("visible");
+      setTimeout(() => {
+        hintText.classList.remove("visible");
+      }, 2000);
+    }
+  }
 }
 
 // Normalize answer for comparison
@@ -192,13 +222,14 @@ function submitAnswer() {
   // Update UI
   answerInput.disabled = true;
   submitButton.disabled = true;
+  hintButton.disabled = true; // Disable hint button after answer is submitted
 
   // Update score display
   scoreElement.textContent = score;
 
-  // Set timer for auto-advancement (3 seconds)
+  // Set timer for auto-advancement (2 seconds)
   clearAutoAdvanceTimer();
-  autoAdvanceTimer = setTimeout(() => autoAdvance(), 3000);
+  autoAdvanceTimer = setTimeout(() => autoAdvance(), 2000);
 }
 
 // Finish quiz and show results
@@ -271,6 +302,9 @@ if (resultHomeButton) {
 }
 submitButton.addEventListener("click", submitAnswer);
 restartButton.addEventListener("click", restartQuiz);
+if (hintButton) {
+  hintButton.addEventListener("click", showHint);
+}
 
 // Enter key to submit answer
 answerInput.addEventListener("keypress", (e) => {

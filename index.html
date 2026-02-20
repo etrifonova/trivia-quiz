@@ -10,11 +10,14 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="script.js"></script>
-    <script type="module" src="questions.js"></script>
   </head>
   <body>
     <div class="container">
       <h1>Викторина по общим знаниям</h1>
+      <p class="subheading">
+        Проверьте свои знания. Напишите ответы в поле ввода. Регистр и лишние
+        пробелы не учитываются.
+      </p>
 
       <!-- Category Selection Screen -->
       <div id="categoryScreen">
@@ -26,16 +29,20 @@
 
       <!-- Quiz Screen -->
       <div id="quizScreen" class="hidden">
-        <div class="quiz-info">
-          <div class="quiz-info_item">
-            <span id="currentCategoryName"></span>
-            <span class="category-icon" id="categoryIcon"></span>
+        <div class="quiz-header">
+          <div class="quiz-info">
+            <div>
+              <span id="currentCategoryName"></span>
+              <span class="category-icon" id="categoryIcon"></span>
+            </div>
+            <div class="question-counter">
+              Вопрос <span id="currentQuestionNumber">1</span> из
+              <span id="totalQuestions">10</span>
+            </div>
+            <button id="homeButton" class="home-button">
+              <i class="fas fa-home"></i> На главную
+            </button>
           </div>
-          <div class="quiz-info_item question-counter">
-            Вопрос <span id="currentQuestionNumber">1</span> из
-            <span id="totalQuestions">10</span>
-          </div>
-          <button id="homeButton"><i class="fa fa-home"></i></button>
         </div>
 
         <div class="progress-container">
@@ -60,13 +67,21 @@
             <div class="feedback" id="feedback"></div>
             <div class="correct-answer" id="correctAnswer"></div>
             <!-- <p class="hint">Нажмите Enter для отправки ответа</p> -->
-          </div>
-        </div>
 
-        <div class="navigation">
-          <button id="submitButton">Отправить ответ</button>
-          <!-- <button id="prevButton" disabled>Предыдущий</button> -->
-          <button id="nextButton" class="hidden">Следующий</button>
+            <!-- <div class="hint-container">
+            <button id="hintButton" class="hint-button">
+              <i class="fas fa-lightbulb"></i> Показать подсказку
+            </button>
+            <div class="hint-text" id="hintText"></div>
+          </div> -->
+
+            <div class="navigation">
+              <button id="hintButton" class="hint-button">
+                <i class="fas fa-lightbulb"></i> Подсказка
+              </button>
+              <button id="submitButton">Проверить</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -79,6 +94,9 @@
           <div class="retro-divider"></div>
           <button id="restartButton">
             <i class="fas fa-redo"></i> Пройти ещё раз
+          </button>
+          <button id="resultHomeButton" class="home-button result-home-button">
+            <i class="fas fa-home"></i> На главную
           </button>
         </div>
       </div>
