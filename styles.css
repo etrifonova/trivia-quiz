@@ -146,6 +146,12 @@ h2 {
   align-items: center;
 }
 
+.answer-input-container_inputarea {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
 .answer-input {
   width: 100%;
   max-width: 500px;
@@ -178,7 +184,7 @@ h2 {
 .feedback {
   font-size: 1.1rem;
   text-align: center;
-  padding: 12px;
+  margin-left: 1rem;
   border-radius: 4px;
   margin-top: 8px;
   display: none;
@@ -186,16 +192,12 @@ h2 {
 
 .feedback.correct {
   display: block;
-  background-color: var(--correct-light);
   color: var(--correct-dark);
-  border: 1px solid var(--gray-500);
 }
 
 .feedback.wrong {
   display: block;
-  background-color: var(--wrong-light);
   color: var(--wrong-dark);
-  border: 1px solid var(--gray-500);
 }
 
 .correct-answer {
