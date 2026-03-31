@@ -74,13 +74,14 @@ function initCategories() {
 // Start quiz with selected category
 function startQuiz(category) {
   currentCategory = category;
-  currentQuestionIndex = 0;
   userAnswers = [];
   score = 0;
 
   // Shuffle questions for this game
   shuffledQuestions = shuffleArray(questionsData[category]);
   totalQuestions = shuffledQuestions.length;
+
+  currentQuestionIndex = 0;
 
   // Update UI
   categoryScreen.classList.add("hidden");
