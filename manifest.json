@@ -1,7 +1,7 @@
 {
   "name": "Trivia Quiz",
   "short_name": "Quiz",
-  "start_url": "/trivia-quiz",
+  "start_url": "/trivia-quiz/",
   "display": "standalone",
   "background_color": "#f8f8f8",
   "theme_color": "#606060",
